@@ -12,5 +12,10 @@ class TagService(val tagRepository: TagRepository) {
 
     fun saveTag(name: String) = tagRepository.save(Tag(name))
 
-
+    fun createIfNotExists(tagName: String): Tag {
+        if (!tagRepository.existsById(tagName))
+            return saveTag(tagName)
+        else
+            return getTagByName(tagName).get()
+    }
 }
