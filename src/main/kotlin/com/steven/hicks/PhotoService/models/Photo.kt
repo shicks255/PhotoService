@@ -8,12 +8,19 @@ import javax.persistence.*
 data class Photo(
         @Id
         val fileName: String,
-        val thumbNailName: String,
         val size: Long,
-        val description: String,
-        val geotag: String,
+        val description: String?,
+        val geotag: String?,
+        val exposureTime: String?,
+        val fNumber: String?,
+        val iso: String?,
+        val focalLength: String?,
+        val lensModel: String?,
         val addedOn: LocalDate,
-        val taken: LocalDateTime,
-        @OneToMany(fetch = FetchType.EAGER)
+        val taken: LocalDate?,
+        @ManyToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
+        @JoinTable(
+                name = "photo_tag_records"
+        )
         val tags: List<Tag>)
 

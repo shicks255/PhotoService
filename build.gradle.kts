@@ -25,6 +25,8 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
 	implementation("org.postgresql:postgresql")
 	implementation("org.apache.commons:commons-csv:1.5")
+	implementation("org.imgscalr:imgscalr-lib:4.2")
+	implementation("com.drewnoakes:metadata-extractor:2.12.0")
 	testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
