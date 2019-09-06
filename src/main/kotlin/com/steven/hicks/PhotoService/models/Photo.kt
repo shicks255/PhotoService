@@ -23,4 +23,3 @@ data class Photo(
                 name = "photo_tag_records"
         )
         val tags: List<Tag>)
-
