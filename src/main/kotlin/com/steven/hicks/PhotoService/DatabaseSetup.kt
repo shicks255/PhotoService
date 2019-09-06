@@ -65,6 +65,11 @@ class DatabaseSetup(val tagService: TagService,
                 val tag3 = recordMap.get("tag3")
                 val tag4 = recordMap.get("tag4")
                 val tag5 = recordMap.get("tag5")
+                val tag6 = recordMap.get("tag6")
+                val tag7 = recordMap.get("tag7")
+                val tag8 = recordMap.get("tag8")
+                val tag9 = recordMap.get("tag9")
+                val tag10 = recordMap.get("tag10")
 
                 val tags = mutableListOf<Tag>()
                 if (tag1 != null)
@@ -94,6 +99,31 @@ class DatabaseSetup(val tagService: TagService,
                 if (tag5 != null)
                 {
                     val tag = tagService.createIfNotExists(tag5)
+                    tags.add(tag)
+                }
+                if (tag6 != null)
+                {
+                    val tag = tagService.createIfNotExists(tag6)
+                    tags.add(tag)
+                }
+                if (tag7 != null)
+                {
+                    val tag = tagService.createIfNotExists(tag7)
+                    tags.add(tag)
+                }
+                if (tag8 != null)
+                {
+                    val tag = tagService.createIfNotExists(tag8)
+                    tags.add(tag)
+                }
+                if (tag9 != null)
+                {
+                    val tag = tagService.createIfNotExists(tag9)
+                    tags.add(tag)
+                }
+                if (tag10 != null)
+                {
+                    val tag = tagService.createIfNotExists(tag10)
                     tags.add(tag)
                 }
 

@@ -32,10 +32,9 @@ class PhotoController(private val photoService: PhotoService) {
         response.contentType = MediaType.IMAGE_JPEG_VALUE
 
         val file = Path.of(PHOTOS_PATH + File.separator + fileName).toFile()
-
-        val stream = file.inputStream()
-
-        StreamUtils.copy(stream, response.outputStream)
+        file.inputStream().use { stream ->
+            StreamUtils.copy(stream, response.outputStream)
+        }
     }
 
     @GetMapping(value = "/{fileName}/thumbnail", produces = [MediaType.IMAGE_JPEG_VALUE])
@@ -43,10 +42,9 @@ class PhotoController(private val photoService: PhotoService) {
         response.contentType = MediaType.IMAGE_JPEG_VALUE
 
         val file = Path.of(PHOTOS_PATH + File.separator + "thumbnails" + File.separator + fileName.getThumbnailName()).toFile()
-
-        val stream = file.inputStream()
-
-        StreamUtils.copy(stream, response.outputStream)
+        file.inputStream().use { stream ->
+            StreamUtils.copy(stream, response.outputStream)
+        }
     }
 
 }
