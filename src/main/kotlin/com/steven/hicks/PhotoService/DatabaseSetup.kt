@@ -155,7 +155,7 @@ class DatabaseSetup(val tagService: TagService,
                 {
                     val resizeMe = ImageIO.read(imageFile.toFile())
                     val dimension = Dimension(450, 300)
-                    val newImage = Scalr.resize(resizeMe, Scalr.Method.QUALITY, dimension.width, dimension.height)
+                    val newImage = Scalr.resize(resizeMe, Scalr.Method.QUALITY, Scalr.Mode.FIT_EXACT, dimension.width, dimension.height)
                     val thumbnailFile = Path.of(photosPath + File.separator + "thumbnails" + File.separator + thumbNailName).toFile()
                     ImageIO.write(newImage, "jpg", thumbnailFile)
 
