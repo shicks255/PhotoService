@@ -2,7 +2,7 @@ package com.steven.hicks.PhotoService
 
 import com.drew.imaging.ImageMetadataReader
 import com.drew.metadata.exif.ExifSubIFDDirectory
-import com.drew.metadata.exif.makernotes.FujifilmMakernoteDirectory
+import com.drew.metadata.exif.GpsDirectory
 import com.steven.hicks.PhotoService.models.Photo
 import com.steven.hicks.PhotoService.models.Tag
 import com.steven.hicks.PhotoService.repositories.PhotoService
@@ -18,11 +18,15 @@ import org.springframework.stereotype.Service
 import java.awt.Dimension
 import java.io.File
 import java.io.FileReader
+import java.math.BigDecimal
+import java.math.MathContext
+import java.math.RoundingMode
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
 import java.time.LocalDate
 import java.time.ZoneId
+import java.util.regex.Pattern
 import javax.imageio.ImageIO
 
 @Service
@@ -34,15 +38,12 @@ class DatabaseSetup(val tagService: TagService,
 
     @Bean
     fun setupDatabase(): CommandLineRunner {
-        return CommandLineRunner { args ->
+        return CommandLineRunner { _ ->
 
             val tagList = ClassPathResource("tagList.txt")
-            if (tagList.file is File) {
-                val reader = FileReader(tagList.file)
-                val lines = reader.readLines()
-
-                lines.forEach { line -> tagService.saveTag(line) }
-            }
+            val reader = FileReader(tagList.file)
+            val lines = reader.readLines()
+            lines.forEach { line -> tagService.saveTag(line) }
 
             val photosFolder = Path.of(photosPath)
             if (!photosFolder.toFile().exists())
@@ -50,7 +51,7 @@ class DatabaseSetup(val tagService: TagService,
 
             val resources = ClassPathResource("photoManifest.csv")
 
-            val parser = CSVParser(Files.newBufferedReader(resources.file?.toPath()), CSVFormat.DEFAULT.withFirstRecordAsHeader())
+            val parser = CSVParser(Files.newBufferedReader(resources.file.toPath()), CSVFormat.DEFAULT.withFirstRecordAsHeader())
             val records = parser.records
             records.forEach{ record ->
                 println(record)
@@ -58,7 +59,8 @@ class DatabaseSetup(val tagService: TagService,
                 println(recordMap.toString())
 
                 val name = requireNotNull(recordMap.get("filename"))
-                val description = recordMap.get("description")
+                val description = requireNotNull(recordMap.get("description"))
+                val title = requireNotNull(recordMap.get("title"))
 
                 val tag1 = recordMap.get("tag1")
                 val tag2 = recordMap.get("tag2")
@@ -72,58 +74,68 @@ class DatabaseSetup(val tagService: TagService,
                 val tag10 = recordMap.get("tag10")
 
                 val tags = mutableListOf<Tag>()
-                if (tag1 != null)
+                if (!tag1.isNullOrBlank())
                 {
-                    val tag = tagService.createIfNotExists(tag1)
+                    val thisTag = checkNotNull(tag1)
+                    val tag = tagService.createIfNotExists(thisTag)
                     tags.add(tag)
                 }
 
-                if (tag2 != null)
+                if (!tag2.isNullOrBlank())
                 {
-                    val tag = tagService.createIfNotExists(tag2)
+                    val thisTag = checkNotNull(tag2)
+                    val tag = tagService.createIfNotExists(thisTag)
                     tags.add(tag)
                 }
 
-                if (tag3 != null)
+                if (!tag3.isNullOrBlank())
                 {
-                    val tag = tagService.createIfNotExists(tag3)
+                    val thisTag = checkNotNull(tag3)
+                    val tag = tagService.createIfNotExists(thisTag)
                     tags.add(tag)
                 }
 
-                if (tag4 != null)
+                if (!tag4.isNullOrBlank())
                 {
-                    val tag = tagService.createIfNotExists(tag4)
+                    val thisTag = checkNotNull(tag4)
+                    val tag = tagService.createIfNotExists(thisTag)
                     tags.add(tag)
                 }
 
-                if (tag5 != null)
+                if (!tag5.isNullOrBlank())
                 {
-                    val tag = tagService.createIfNotExists(tag5)
+                    val thisTag = checkNotNull(tag5)
+                    val tag = tagService.createIfNotExists(thisTag)
                     tags.add(tag)
                 }
-                if (tag6 != null)
+                if (!tag6.isNullOrBlank())
                 {
-                    val tag = tagService.createIfNotExists(tag6)
+                    val thisTag = checkNotNull(tag6)
+                    val tag = tagService.createIfNotExists(thisTag)
                     tags.add(tag)
                 }
-                if (tag7 != null)
+                if (!tag7.isNullOrBlank())
                 {
-                    val tag = tagService.createIfNotExists(tag7)
+                    val thisTag = checkNotNull(tag7)
+                    val tag = tagService.createIfNotExists(thisTag)
                     tags.add(tag)
                 }
-                if (tag8 != null)
+                if (!tag8.isNullOrBlank())
                 {
-                    val tag = tagService.createIfNotExists(tag8)
+                    val thisTag = checkNotNull(tag8)
+                    val tag = tagService.createIfNotExists(thisTag)
                     tags.add(tag)
                 }
-                if (tag9 != null)
+                if (!tag9.isNullOrBlank())
                 {
-                    val tag = tagService.createIfNotExists(tag9)
+                    val thisTag = checkNotNull(tag9)
+                    val tag = tagService.createIfNotExists(thisTag)
                     tags.add(tag)
                 }
-                if (tag10 != null)
+                if (!tag10.isNullOrBlank())
                 {
-                    val tag = tagService.createIfNotExists(tag10)
+                    val thisTag = checkNotNull(tag10)
+                    val tag = tagService.createIfNotExists(thisTag)
                     tags.add(tag)
                 }
 
@@ -140,16 +152,58 @@ class DatabaseSetup(val tagService: TagService,
                         directory.getString(ExifSubIFDDirectory.TAG_FNUMBER) else ""
                 val iso = if (directory.containsTag(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT))
                         directory.getString(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT) else ""
-                val dateTimeOrignal = directory.dateOriginal
                 val focalLength = if (directory.containsTag(ExifSubIFDDirectory.TAG_FOCAL_LENGTH))
                     directory.getString(ExifSubIFDDirectory.TAG_FOCAL_LENGTH) else ""
                 val lensModel = if (directory.containsTag(ExifSubIFDDirectory.TAG_LENS_MODEL))
                     directory.getString(ExifSubIFDDirectory.TAG_LENS_MODEL) else ""
 
-                val fujiDirectory = t.getFirstDirectoryOfType(FujifilmMakernoteDirectory::class.java)
-                //val aperture = fujiDirectory.getString(FujifilmMakernoteDirectory.)
+                var longetude = ""
+                var latitude = ""
+                var altitude = ""
 
-                val thumbNailName = "${name?.substring(0, name?.indexOf("."))}_small.jpg"
+                val context = MathContext(6, RoundingMode.HALF_EVEN)
+
+                if (t.getFirstDirectoryOfType(GpsDirectory::class.java) != null) {
+                    val gpsDirectory = t.getFirstDirectoryOfType(GpsDirectory::class.java)
+
+                    val dmsLongetude = gpsDirectory.getString(GpsDirectory.TAG_LONGITUDE) + " " +gpsDirectory.getString(GpsDirectory.TAG_LONGITUDE_REF)
+                    val longTokens = dmsLongetude.split(Pattern.compile("/\\d+\\s"))
+
+                    val longStuff = dmsLongetude.split(" ")
+                    var longDegrees = BigDecimal(longStuff[0].split("/")[0])
+                    longDegrees = longDegrees.divide(BigDecimal(longStuff[0].split("/")[1]), context)
+
+                    var longMinutes = BigDecimal(longStuff[1].split("/")[0])
+                    longMinutes = longMinutes.divide(BigDecimal(longStuff[1].split("/")[1]), context)
+
+                    var longSeconds = BigDecimal(longStuff[2].split("/")[0])
+                    longSeconds = longSeconds.divide(BigDecimal(longStuff[2].split("/")[1]), context)
+
+                    longetude = longDegrees
+                            .plus(longMinutes.divide(BigDecimal("60"), context))
+                            .plus(longSeconds.divide(BigDecimal("3600"), context)).toString() + longTokens[3]
+
+                    val dmsLatitude = gpsDirectory.getString(GpsDirectory.TAG_LATITUDE) + " " + gpsDirectory.getString(GpsDirectory.TAG_LATITUDE_REF)
+                    val latTokens = dmsLatitude.split(Pattern.compile("/\\d+\\s"))
+
+                    val latStuff = dmsLatitude.split(" ")
+                    var latDegrees = BigDecimal(latStuff[0].split("/")[0])
+                    latDegrees = latDegrees.divide(BigDecimal(latStuff[0].split("/")[1]), context)
+
+                    var latMinutes = BigDecimal(latStuff[1].split("/")[0])
+                    latMinutes = latMinutes.divide(BigDecimal(latStuff[1].split("/")[1]), context)
+
+                    var latSeconds = BigDecimal(latStuff[2].split("/")[0])
+                    latSeconds = latSeconds.divide(BigDecimal(latStuff[2].split("/")[1]), context)
+
+                    latitude = latDegrees
+                            .plus(latMinutes.divide(BigDecimal("60"), context))
+                            .plus(latSeconds.divide(BigDecimal("3600"), context)).toString() + latTokens[3]
+
+                    altitude = gpsDirectory.getString(GpsDirectory.TAG_ALTITUDE)
+                }
+
+                val thumbNailName = "${name.substring(0, name.indexOf("."))}_small.jpg"
                 val thumbnailPath = Path.of(photosPath + File.separator + "thumbnails" + File.separator + thumbNailName)
                 if (!thumbnailPath.toFile().exists())
                 {
@@ -159,15 +213,15 @@ class DatabaseSetup(val tagService: TagService,
                     val thumbnailFile = Path.of(photosPath + File.separator + "thumbnails" + File.separator + thumbNailName).toFile()
                     ImageIO.write(newImage, "jpg", thumbnailFile)
 
-                    val newPhoto = Photo(name, imageFile.toFile().length(),
-                            description, "", exposureTime, fStop, iso, focalLength, lensModel,
+                    val newPhoto = Photo(name, title,
+                            description, latitude, longetude, altitude, exposureTime, fStop, iso, focalLength, lensModel,
                             LocalDate.now(), dateTaken2, tags)
                     photoService.savePhoto(newPhoto)
                 }
                 else
                 {
                     val oldPhoto = photoService.getPhotoByFilename(name)
-                    val newOldPhoto = oldPhoto.copy(description = description, tags = tags, taken = dateTaken2)
+                    val newOldPhoto = oldPhoto.copy(description = description, tags = tags, taken = dateTaken2, title = title)
                     photoService.savePhoto(newOldPhoto)
                 }
             }
