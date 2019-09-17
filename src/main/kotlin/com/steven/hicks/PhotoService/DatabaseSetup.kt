@@ -1,6 +1,7 @@
 package com.steven.hicks.PhotoService
 
 import com.drew.imaging.ImageMetadataReader
+import com.drew.metadata.Directory
 import com.drew.metadata.exif.ExifSubIFDDirectory
 import com.drew.metadata.exif.GpsDirectory
 import com.steven.hicks.PhotoService.models.Photo
@@ -62,82 +63,7 @@ class DatabaseSetup(val tagService: TagService,
                 val description = requireNotNull(recordMap.get("description"))
                 val title = requireNotNull(recordMap.get("title"))
 
-                val tag1 = recordMap.get("tag1")
-                val tag2 = recordMap.get("tag2")
-                val tag3 = recordMap.get("tag3")
-                val tag4 = recordMap.get("tag4")
-                val tag5 = recordMap.get("tag5")
-                val tag6 = recordMap.get("tag6")
-                val tag7 = recordMap.get("tag7")
-                val tag8 = recordMap.get("tag8")
-                val tag9 = recordMap.get("tag9")
-                val tag10 = recordMap.get("tag10")
-
-                val tags = mutableListOf<Tag>()
-                if (!tag1.isNullOrBlank())
-                {
-                    val thisTag = checkNotNull(tag1)
-                    val tag = tagService.createIfNotExists(thisTag)
-                    tags.add(tag)
-                }
-
-                if (!tag2.isNullOrBlank())
-                {
-                    val thisTag = checkNotNull(tag2)
-                    val tag = tagService.createIfNotExists(thisTag)
-                    tags.add(tag)
-                }
-
-                if (!tag3.isNullOrBlank())
-                {
-                    val thisTag = checkNotNull(tag3)
-                    val tag = tagService.createIfNotExists(thisTag)
-                    tags.add(tag)
-                }
-
-                if (!tag4.isNullOrBlank())
-                {
-                    val thisTag = checkNotNull(tag4)
-                    val tag = tagService.createIfNotExists(thisTag)
-                    tags.add(tag)
-                }
-
-                if (!tag5.isNullOrBlank())
-                {
-                    val thisTag = checkNotNull(tag5)
-                    val tag = tagService.createIfNotExists(thisTag)
-                    tags.add(tag)
-                }
-                if (!tag6.isNullOrBlank())
-                {
-                    val thisTag = checkNotNull(tag6)
-                    val tag = tagService.createIfNotExists(thisTag)
-                    tags.add(tag)
-                }
-                if (!tag7.isNullOrBlank())
-                {
-                    val thisTag = checkNotNull(tag7)
-                    val tag = tagService.createIfNotExists(thisTag)
-                    tags.add(tag)
-                }
-                if (!tag8.isNullOrBlank())
-                {
-                    val thisTag = checkNotNull(tag8)
-                    val tag = tagService.createIfNotExists(thisTag)
-                    tags.add(tag)
-                }
-                if (!tag9.isNullOrBlank())
-                {
-                    val thisTag = checkNotNull(tag9)
-                    val tag = tagService.createIfNotExists(thisTag)
-                    tags.add(tag)
-                }
-                if (!tag10.isNullOrBlank())
-                {
-                    val thisTag = checkNotNull(tag10)
-                    val tag = tagService.createIfNotExists(thisTag)
-                    tags.add(tag)
-                }
+                val tags = getTags(recordMap)
 
                 val imageFile = Paths.get(photosPath + File.separator + name)
                 val t = ImageMetadataReader.readMetadata(imageFile.toFile())
@@ -166,40 +92,8 @@ class DatabaseSetup(val tagService: TagService,
                 if (t.getFirstDirectoryOfType(GpsDirectory::class.java) != null) {
                     val gpsDirectory = t.getFirstDirectoryOfType(GpsDirectory::class.java)
 
-                    val dmsLongetude = gpsDirectory.getString(GpsDirectory.TAG_LONGITUDE) + " " +gpsDirectory.getString(GpsDirectory.TAG_LONGITUDE_REF)
-                    val longTokens = dmsLongetude.split(Pattern.compile("/\\d+\\s"))
-
-                    val longStuff = dmsLongetude.split(" ")
-                    var longDegrees = BigDecimal(longStuff[0].split("/")[0])
-                    longDegrees = longDegrees.divide(BigDecimal(longStuff[0].split("/")[1]), context)
-
-                    var longMinutes = BigDecimal(longStuff[1].split("/")[0])
-                    longMinutes = longMinutes.divide(BigDecimal(longStuff[1].split("/")[1]), context)
-
-                    var longSeconds = BigDecimal(longStuff[2].split("/")[0])
-                    longSeconds = longSeconds.divide(BigDecimal(longStuff[2].split("/")[1]), context)
-
-                    longetude = longDegrees
-                            .plus(longMinutes.divide(BigDecimal("60"), context))
-                            .plus(longSeconds.divide(BigDecimal("3600"), context)).toString() + longTokens[3]
-
-                    val dmsLatitude = gpsDirectory.getString(GpsDirectory.TAG_LATITUDE) + " " + gpsDirectory.getString(GpsDirectory.TAG_LATITUDE_REF)
-                    val latTokens = dmsLatitude.split(Pattern.compile("/\\d+\\s"))
-
-                    val latStuff = dmsLatitude.split(" ")
-                    var latDegrees = BigDecimal(latStuff[0].split("/")[0])
-                    latDegrees = latDegrees.divide(BigDecimal(latStuff[0].split("/")[1]), context)
-
-                    var latMinutes = BigDecimal(latStuff[1].split("/")[0])
-                    latMinutes = latMinutes.divide(BigDecimal(latStuff[1].split("/")[1]), context)
-
-                    var latSeconds = BigDecimal(latStuff[2].split("/")[0])
-                    latSeconds = latSeconds.divide(BigDecimal(latStuff[2].split("/")[1]), context)
-
-                    latitude = latDegrees
-                            .plus(latMinutes.divide(BigDecimal("60"), context))
-                            .plus(latSeconds.divide(BigDecimal("3600"), context)).toString() + latTokens[3]
-
+                    longetude = getLongitude(gpsDirectory, context)
+                    latitude = getLatitude(gpsDirectory, context)
                     altitude = gpsDirectory.getString(GpsDirectory.TAG_ALTITUDE)
                 }
 
@@ -228,4 +122,126 @@ class DatabaseSetup(val tagService: TagService,
         }
     }
 
+    private fun getTags(recordMap: Map<String, String>): List<Tag> {
+        val tag1 = recordMap.get("tag1")
+        val tag2 = recordMap.get("tag2")
+        val tag3 = recordMap.get("tag3")
+        val tag4 = recordMap.get("tag4")
+        val tag5 = recordMap.get("tag5")
+        val tag6 = recordMap.get("tag6")
+        val tag7 = recordMap.get("tag7")
+        val tag8 = recordMap.get("tag8")
+        val tag9 = recordMap.get("tag9")
+        val tag10 = recordMap.get("tag10")
+
+        val tags = mutableListOf<Tag>()
+        if (!tag1.isNullOrBlank())
+        {
+            val thisTag = checkNotNull(tag1)
+            val tag = tagService.createIfNotExists(thisTag)
+            tags.add(tag)
+        }
+
+        if (!tag2.isNullOrBlank())
+        {
+            val thisTag = checkNotNull(tag2)
+            val tag = tagService.createIfNotExists(thisTag)
+            tags.add(tag)
+        }
+
+        if (!tag3.isNullOrBlank())
+        {
+            val thisTag = checkNotNull(tag3)
+            val tag = tagService.createIfNotExists(thisTag)
+            tags.add(tag)
+        }
+
+        if (!tag4.isNullOrBlank())
+        {
+            val thisTag = checkNotNull(tag4)
+            val tag = tagService.createIfNotExists(thisTag)
+            tags.add(tag)
+        }
+
+        if (!tag5.isNullOrBlank())
+        {
+            val thisTag = checkNotNull(tag5)
+            val tag = tagService.createIfNotExists(thisTag)
+            tags.add(tag)
+        }
+        if (!tag6.isNullOrBlank())
+        {
+            val thisTag = checkNotNull(tag6)
+            val tag = tagService.createIfNotExists(thisTag)
+            tags.add(tag)
+        }
+        if (!tag7.isNullOrBlank())
+        {
+            val thisTag = checkNotNull(tag7)
+            val tag = tagService.createIfNotExists(thisTag)
+            tags.add(tag)
+        }
+        if (!tag8.isNullOrBlank())
+        {
+            val thisTag = checkNotNull(tag8)
+            val tag = tagService.createIfNotExists(thisTag)
+            tags.add(tag)
+        }
+        if (!tag9.isNullOrBlank())
+        {
+            val thisTag = checkNotNull(tag9)
+            val tag = tagService.createIfNotExists(thisTag)
+            tags.add(tag)
+        }
+        if (!tag10.isNullOrBlank())
+        {
+            val thisTag = checkNotNull(tag10)
+            val tag = tagService.createIfNotExists(thisTag)
+            tags.add(tag)
+        }
+
+        return tags
+    }
+
+    private fun getLongitude(gpsDirectory: Directory, context: MathContext): String {
+        val dmsLongetude = gpsDirectory.getString(GpsDirectory.TAG_LONGITUDE) + " " +gpsDirectory.getString(GpsDirectory.TAG_LONGITUDE_REF)
+        val longTokens = dmsLongetude.split(Pattern.compile("/\\d+\\s"))
+
+        val longStuff = dmsLongetude.split(" ")
+        var longDegrees = BigDecimal(longStuff[0].split("/")[0])
+        longDegrees = longDegrees.divide(BigDecimal(longStuff[0].split("/")[1]), context)
+
+        var longMinutes = BigDecimal(longStuff[1].split("/")[0])
+        longMinutes = longMinutes.divide(BigDecimal(longStuff[1].split("/")[1]), context)
+
+        var longSeconds = BigDecimal(longStuff[2].split("/")[0])
+        longSeconds = longSeconds.divide(BigDecimal(longStuff[2].split("/")[1]), context)
+
+        val longetude = longDegrees
+                .plus(longMinutes.divide(BigDecimal("60"), context))
+                .plus(longSeconds.divide(BigDecimal("3600"), context)).toString() + longTokens[3]
+
+        return longetude
+    }
+
+    private fun getLatitude(gpsDirectory: Directory, context: MathContext): String {
+        val dmsLatitude = gpsDirectory.getString(GpsDirectory.TAG_LATITUDE) + " " + gpsDirectory.getString(GpsDirectory.TAG_LATITUDE_REF)
+        val latTokens = dmsLatitude.split(Pattern.compile("/\\d+\\s"))
+
+        val latStuff = dmsLatitude.split(" ")
+        var latDegrees = BigDecimal(latStuff[0].split("/")[0])
+        latDegrees = latDegrees.divide(BigDecimal(latStuff[0].split("/")[1]), context)
+
+        var latMinutes = BigDecimal(latStuff[1].split("/")[0])
+        latMinutes = latMinutes.divide(BigDecimal(latStuff[1].split("/")[1]), context)
+
+        var latSeconds = BigDecimal(latStuff[2].split("/")[0])
+        latSeconds = latSeconds.divide(BigDecimal(latStuff[2].split("/")[1]), context)
+
+        val latitude = latDegrees
+                .plus(latMinutes.divide(BigDecimal("60"), context))
+                .plus(latSeconds.divide(BigDecimal("3600"), context)).toString() + latTokens[3]
+
+        return latitude
+    }
 }
