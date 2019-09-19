@@ -25,7 +25,7 @@ import java.math.RoundingMode
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.ZoneId
 import java.util.regex.Pattern
 import javax.imageio.ImageIO
@@ -70,7 +70,7 @@ class DatabaseSetup(val tagService: TagService,
 
                 val directory = t.getFirstDirectoryOfType(ExifSubIFDDirectory::class.java)
                 val dateTaken = directory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL)
-                val dateTaken2 = dateTaken.toInstant().atZone(ZoneId.systemDefault()).toLocalDate()
+                val dateTakenLocalDateTime = dateTaken.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()
 
                 val exposureTime = if (directory.containsTag(ExifSubIFDDirectory.TAG_EXPOSURE_TIME))
                     directory.getString(ExifSubIFDDirectory.TAG_EXPOSURE_TIME) else ""
@@ -109,13 +109,13 @@ class DatabaseSetup(val tagService: TagService,
 
                     val newPhoto = Photo(name, title,
                             description, latitude, longetude, altitude, exposureTime, fStop, iso, focalLength, lensModel,
-                            LocalDate.now(), dateTaken2, tags)
+                            LocalDateTime.now(), dateTakenLocalDateTime, tags)
                     photoService.savePhoto(newPhoto)
                 }
                 else
                 {
                     val oldPhoto = photoService.getPhotoByFilename(name)
-                    val newOldPhoto = oldPhoto.copy(description = description, tags = tags, taken = dateTaken2, title = title)
+                    val newOldPhoto = oldPhoto.copy(description = description, tags = tags, taken = dateTakenLocalDateTime, title = title)
                     photoService.savePhoto(newOldPhoto)
                 }
             }

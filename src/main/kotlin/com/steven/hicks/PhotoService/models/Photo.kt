@@ -1,7 +1,7 @@
 package com.steven.hicks.PhotoService.models
 
 import org.hibernate.annotations.Cascade
-import java.time.LocalDate
+import java.time.LocalDateTime
 import javax.persistence.*
 
 @Entity
@@ -18,8 +18,11 @@ data class Photo(
         val iso: String?,
         val focalLength: String?,
         val lensModel: String?,
-        val addedOn: LocalDate,
-        val taken: LocalDate?,
+
+        @Column(columnDefinition = "TIMESTAMP")
+        val addedOn: LocalDateTime,
+        @Column(columnDefinition = "TIMESTAMP")
+        val taken: LocalDateTime?,
         @Cascade(org.hibernate.annotations.CascadeType.MERGE)
         @ManyToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
         @JoinTable(
