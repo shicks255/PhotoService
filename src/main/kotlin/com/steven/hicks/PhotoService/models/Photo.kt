@@ -19,9 +19,9 @@ data class Photo(
         val focalLength: String?,
         val lensModel: String?,
 
-        @Column(columnDefinition = "TIMESTAMP")
+        @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
         val addedOn: LocalDateTime,
-        @Column(columnDefinition = "TIMESTAMP")
+        @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
         val taken: LocalDateTime?,
         @Cascade(org.hibernate.annotations.CascadeType.MERGE)
         @ManyToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
