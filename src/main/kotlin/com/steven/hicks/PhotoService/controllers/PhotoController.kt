@@ -27,7 +27,7 @@ class PhotoController(private val photoService: PhotoService) {
         return allPhotos
     }
 
-    @GetMapping(value = "/{fileName}", produces = [MediaType.IMAGE_JPEG_VALUE])
+    @GetMapping("/{fileName}", produces = [MediaType.IMAGE_JPEG_VALUE])
     fun getPhotoByName(response: HttpServletResponse, @PathVariable(value = "fileName") fileName: String) {
         response.contentType = MediaType.IMAGE_JPEG_VALUE
 
@@ -37,7 +37,7 @@ class PhotoController(private val photoService: PhotoService) {
         }
     }
 
-    @GetMapping(value = "/{fileName}/thumbnail", produces = [MediaType.IMAGE_JPEG_VALUE])
+    @GetMapping("/{fileName}/thumbnail", produces = [MediaType.IMAGE_JPEG_VALUE])
     fun getThumbnailByName(response: HttpServletResponse, @PathVariable(value = "fileName") fileName: String) {
         response.contentType = MediaType.IMAGE_JPEG_VALUE
 
