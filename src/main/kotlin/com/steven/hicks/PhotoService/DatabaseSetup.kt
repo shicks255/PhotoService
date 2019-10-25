@@ -19,8 +19,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
 import java.awt.Dimension
-import java.io.File
-import java.io.FileReader
+import java.io.*
 import java.math.BigDecimal
 import java.math.MathContext
 import java.math.RoundingMode
@@ -54,7 +53,8 @@ class DatabaseSetup(val tagService: TagService,
 
             val resources = ClassPathResource("photoManifest.csv")
 
-            val parser = CSVParser(Files.newBufferedReader(resources.file.toPath()), CSVFormat.DEFAULT.withFirstRecordAsHeader())
+            val t = BufferedReader(InputStreamReader(resources.inputStream))
+            val parser = CSVParser(t, CSVFormat.DEFAULT.withFirstRecordAsHeader())
             val records = parser.records
             val completedPhotos: List<Deferred<Any>> = records.map {
                 GlobalScope.async { createPhoto(it) }
@@ -70,8 +70,7 @@ class DatabaseSetup(val tagService: TagService,
 
     fun createTags() {
         val tagList = ClassPathResource("tagList.txt")
-        val reader = FileReader(tagList.file)
-        val lines = reader.readLines()
+        val lines = BufferedReader(InputStreamReader(tagList.inputStream)).readLines()
         lines.forEach { line -> tagService.saveTag(line) }
 
         println("finished at " + LocalTime.now())
