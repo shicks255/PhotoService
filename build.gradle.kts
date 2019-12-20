@@ -37,3 +37,11 @@ tasks.withType<KotlinCompile> {
 		jvmTarget = "1.8"
 	}
 }
+
+tasks.register("copy") {
+	group = "custom"
+	description = "Copy the jar service file to my server"
+	doLast {
+		println("Hello from Gradle :)")
+	}
+}
