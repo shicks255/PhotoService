@@ -43,6 +43,9 @@ class DatabaseSetup(val tagService: TagService,
     fun setupDatabase(): CommandLineRunner {
         return CommandLineRunner { _ ->
 
+            photoService.deleteAll()
+            tagService.deleteAll()
+
             val job = GlobalScope.async {
                 createTags()
             }
@@ -52,7 +55,6 @@ class DatabaseSetup(val tagService: TagService,
                 Files.createDirectory(photosFolder)
 
             val resources = ClassPathResource("photoManifest.csv")
-
             val t = BufferedReader(InputStreamReader(resources.inputStream))
             val parser = CSVParser(t, CSVFormat.DEFAULT.withFirstRecordAsHeader())
             val records = parser.records
@@ -71,7 +73,7 @@ class DatabaseSetup(val tagService: TagService,
     fun createTags() {
         val tagList = ClassPathResource("tagList.txt")
         val lines = BufferedReader(InputStreamReader(tagList.inputStream)).readLines()
-        lines.forEach { line -> tagService.saveTag(line) }
+        lines.forEach { line -> tagService.createIfNotExists(line) }
 
         println("finished at " + LocalTime.now())
     }
@@ -127,16 +129,18 @@ class DatabaseSetup(val tagService: TagService,
             val newImage = Scalr.resize(resizeMe, Scalr.Method.QUALITY, Scalr.Mode.FIT_EXACT, dimension.width, dimension.height)
             val thumbnailFile = Path.of(photosPath + File.separator + "thumbnails" + File.separator + thumbNailName).toFile()
             ImageIO.write(newImage, "jpg", thumbnailFile)
+        }
 
-            val newThumbnail = Photo(fileName, title,
-                    description, latitude, longetude, altitude, exposureTime, fStop, iso, focalLength, lensModel,
-                    LocalDateTime.now(), dateTakenLocalDateTime, tags)
-            photoService.savePhoto(newThumbnail)
-        } else {
+        if (photoService.photoExists(fileName)) {
             val oldPhoto = photoService.getPhotoByFilename(fileName)
             //doing this in case anything changed
             val newOldPhoto = oldPhoto.copy(description = description, tags = tags, taken = dateTakenLocalDateTime, title = title)
             photoService.savePhoto(newOldPhoto)
+        } else {
+            val newPhoto = Photo(fileName, title,
+                    description, latitude, longetude, altitude, exposureTime, fStop, iso, focalLength, lensModel,
+                    LocalDateTime.now(), dateTakenLocalDateTime, tags)
+            photoService.savePhoto(newPhoto)
         }
     }
 

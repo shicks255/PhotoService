@@ -28,4 +28,5 @@ data class Photo(
         @JoinTable(
                 name = "photo_tag_records"
         )
-        val tags: List<Tag>)
+        val tags: List<Tag>
+)

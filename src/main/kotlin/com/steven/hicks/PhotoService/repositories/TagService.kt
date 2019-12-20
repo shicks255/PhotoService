@@ -6,6 +6,8 @@ import org.springframework.stereotype.Service
 @Service
 class TagService(val tagRepository: TagRepository) {
 
+    fun deleteAll() = tagRepository.deleteAll()
+
     fun getAllTags(): List<Tag> = tagRepository.findAll().filterNotNull()
 
     fun getTagByName(name: String) = tagRepository.findById(name)
@@ -14,7 +16,9 @@ class TagService(val tagRepository: TagRepository) {
 
     fun createIfNotExists(tagName: String): Tag {
         if (!tagRepository.existsById(tagName))
-            return saveTag(tagName)
+            synchronized(this) {
+                return saveTag(tagName)
+            }
         else
             return getTagByName(tagName).get()
     }
