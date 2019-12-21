@@ -6,10 +6,7 @@ import com.steven.hicks.PhotoService.repositories.PhotoService
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.http.MediaType
 import org.springframework.util.StreamUtils
-import org.springframework.web.bind.annotation.GetMapping
-import org.springframework.web.bind.annotation.PathVariable
-import org.springframework.web.bind.annotation.RequestMapping
-import org.springframework.web.bind.annotation.RestController
+import org.springframework.web.bind.annotation.*
 import java.io.File
 import java.nio.file.Path
 import javax.servlet.http.HttpServletResponse
@@ -21,12 +18,14 @@ class PhotoController(private val photoService: PhotoService) {
     @Value("\${photos.folder}")
     private var PHOTOS_PATH: String = ""
 
+    @CrossOrigin
     @GetMapping
     fun getAllPhotos(): List<Photo> {
         val allPhotos = photoService.getAllPhotos()
         return allPhotos
     }
 
+    @CrossOrigin
     @GetMapping("/{fileName}", produces = [MediaType.IMAGE_JPEG_VALUE])
     fun getPhotoByName(response: HttpServletResponse, @PathVariable(value = "fileName") fileName: String) {
         response.contentType = MediaType.IMAGE_JPEG_VALUE
@@ -37,6 +36,7 @@ class PhotoController(private val photoService: PhotoService) {
         }
     }
 
+    @CrossOrigin
     @GetMapping("/{fileName}/thumbnail", produces = [MediaType.IMAGE_JPEG_VALUE])
     fun getThumbnailByName(response: HttpServletResponse, @PathVariable(value = "fileName") fileName: String) {
         response.contentType = MediaType.IMAGE_JPEG_VALUE

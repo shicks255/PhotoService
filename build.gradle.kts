@@ -45,3 +45,8 @@ tasks.register("copy") {
 		println("Hello from Gradle :)")
 	}
 }
+
+tasks.register<Copy>("copyJar") {
+	from("$buildDir/libs/PhotoService-0.0.1-SNAPSHOT.jar")
+	into("Z:\\photoService")
+}
