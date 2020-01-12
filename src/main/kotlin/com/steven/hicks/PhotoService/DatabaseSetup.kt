@@ -43,6 +43,7 @@ class DatabaseSetup(val tagService: TagService,
     fun setupDatabase(): CommandLineRunner {
         return CommandLineRunner { _ ->
 
+            println(photosPath)
             photoService.deleteAll()
             tagService.deleteAll()
 
@@ -121,15 +122,8 @@ class DatabaseSetup(val tagService: TagService,
             altitude = gpsDirectory.getString(GpsDirectory.TAG_ALTITUDE)
         }
 
-        val thumbNailName = "${fileName.substring(0, fileName.indexOf("."))}_small.jpg"
-        val thumbnailPath = Path.of(photosPath + File.separator + "thumbnails" + File.separator + thumbNailName)
-        if (!thumbnailPath.toFile().exists()) {
-            val resizeMe = ImageIO.read(imageFile.toFile())
-            val dimension = Dimension(450, 300)
-            val newImage = Scalr.resize(resizeMe, Scalr.Method.QUALITY, Scalr.Mode.FIT_EXACT, dimension.width, dimension.height)
-            val thumbnailFile = Path.of(photosPath + File.separator + "thumbnails" + File.separator + thumbNailName).toFile()
-            ImageIO.write(newImage, "jpg", thumbnailFile)
-        }
+        createThumbnail(fileName, imageFile)
+        createCompressed(fileName, imageFile)
 
         if (photoService.photoExists(fileName)) {
             val oldPhoto = photoService.getPhotoByFilename(fileName)
@@ -141,6 +135,29 @@ class DatabaseSetup(val tagService: TagService,
                     description, latitude, longetude, altitude, exposureTime, fStop, iso, focalLength, lensModel,
                     LocalDateTime.now(), dateTakenLocalDateTime, tags)
             photoService.savePhoto(newPhoto)
+        }
+    }
+
+    private fun createCompressed(fileName: String, imageFile: Path) {
+        val compressed = Path.of(photosPath + File.separator + "compressed" + File.separator + fileName + ".jpg")
+        if (compressed.toFile().exists())
+            Files.delete(compressed)
+        val compressMe = ImageIO.read(imageFile.toFile())
+        val dimension = Dimension(1920, 1080)
+        val newImage = Scalr.resize(compressMe, Scalr.Method.SPEED, Scalr.Mode.FIT_TO_WIDTH, dimension.width, dimension.height)
+        val compressFile = Path.of(photosPath + File.separator + "compressed" + File.separator + fileName).toFile()
+        ImageIO.write(newImage, "jpg", compressFile)
+    }
+
+    private fun createThumbnail(fileName: String, imageFile: Path) {
+        val thumbNailName = "${fileName.substring(0, fileName.indexOf("."))}_small.jpg"
+        val thumbnailPath = Path.of(photosPath + File.separator + "thumbnails" + File.separator + thumbNailName)
+        if (!thumbnailPath.toFile().exists()) {
+            val resizeMe = ImageIO.read(imageFile.toFile())
+            val dimension = Dimension(450, 300)
+            val newImage = Scalr.resize(resizeMe, Scalr.Method.QUALITY, Scalr.Mode.FIT_EXACT, dimension.width, dimension.height)
+            val thumbnailFile = Path.of(photosPath + File.separator + "thumbnails" + File.separator + thumbNailName).toFile()
+            ImageIO.write(newImage, "jpg", thumbnailFile)
         }
     }
 

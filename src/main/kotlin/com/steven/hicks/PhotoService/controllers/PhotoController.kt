@@ -30,7 +30,7 @@ class PhotoController(private val photoService: PhotoService) {
     fun getPhotoByName(response: HttpServletResponse, @PathVariable(value = "fileName") fileName: String) {
         response.contentType = MediaType.IMAGE_JPEG_VALUE
 
-        val file = Path.of(PHOTOS_PATH + File.separator + fileName).toFile()
+        val file = Path.of(PHOTOS_PATH + File.separator + "compressed" + File.separator + fileName).toFile()
         file.inputStream().use { stream ->
             StreamUtils.copy(stream, response.outputStream)
         }
