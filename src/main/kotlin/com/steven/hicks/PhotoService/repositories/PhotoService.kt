@@ -19,5 +19,5 @@ class PhotoService(val photoRepository: PhotoRepository) {
 
     fun savePhoto(photo: Photo): Photo = photoRepository.save(photo)
 
-    fun getAllPhotos(): List<Photo> = photoRepository.findAll().filterNotNull()
+    fun getAllPhotos(): List<Photo> = photoRepository.findAllByOrderByTakenDesc()
 }

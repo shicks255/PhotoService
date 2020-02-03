@@ -8,4 +8,5 @@ interface PhotoRepository: CrudRepository<Photo, String> {
 
     //open fun findByTag(): List<Photo>
 
+    open fun findAllByOrderByTakenDesc(): List<Photo>
 }

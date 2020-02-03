@@ -18,14 +18,12 @@ class PhotoController(private val photoService: PhotoService) {
     @Value("\${photos.folder}")
     private var PHOTOS_PATH: String = ""
 
-    @CrossOrigin
     @GetMapping
     fun getAllPhotos(): List<Photo> {
         val allPhotos = photoService.getAllPhotos()
         return allPhotos
     }
 
-    @CrossOrigin
     @GetMapping("/{fileName}", produces = [MediaType.IMAGE_JPEG_VALUE])
     fun getPhotoByName(response: HttpServletResponse, @PathVariable(value = "fileName") fileName: String) {
         response.contentType = MediaType.IMAGE_JPEG_VALUE
@@ -36,12 +34,21 @@ class PhotoController(private val photoService: PhotoService) {
         }
     }
 
-    @CrossOrigin
     @GetMapping("/{fileName}/thumbnail", produces = [MediaType.IMAGE_JPEG_VALUE])
     fun getThumbnailByName(response: HttpServletResponse, @PathVariable(value = "fileName") fileName: String) {
         response.contentType = MediaType.IMAGE_JPEG_VALUE
 
         val file = Path.of(PHOTOS_PATH + File.separator + "thumbnails" + File.separator + fileName.getThumbnailName()).toFile()
+        file.inputStream().use { stream ->
+            StreamUtils.copy(stream, response.outputStream)
+        }
+    }
+
+    @GetMapping("/{fileName}/tiny", produces = [MediaType.IMAGE_JPEG_VALUE])
+    fun getTinyByName(response: HttpServletResponse, @PathVariable(value = "fileName") fileName: String) {
+        response.contentType = MediaType.IMAGE_JPEG_VALUE
+
+        val file = Path.of(PHOTOS_PATH + File.separator + "downScaled" + File.separator + fileName).toFile()
         file.inputStream().use { stream ->
             StreamUtils.copy(stream, response.outputStream)
         }
