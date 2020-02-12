@@ -124,7 +124,6 @@ class DatabaseSetup(val tagService: TagService,
 
         createThumbnail(fileName, imageFile)
         createCompressed(fileName, imageFile)
-        createDownScaled(fileName, imageFile)
 
         if (photoService.photoExists(fileName)) {
             val oldPhoto = photoService.getPhotoByFilename(fileName)
@@ -140,37 +139,26 @@ class DatabaseSetup(val tagService: TagService,
     }
 
     private fun createCompressed(fileName: String, imageFile: Path) {
-        val compressed = Path.of(photosPath + File.separator + "compressed" + File.separator + fileName + ".jpg")
+        val compressed = Path.of(photosPath + File.separator + "compressed" + File.separator + fileName)
         if (compressed.toFile().exists())
             Files.delete(compressed)
         val compressMe = ImageIO.read(imageFile.toFile())
         val dimension = Dimension(1920, 1080)
-        val newImage = Scalr.resize(compressMe, Scalr.Method.SPEED, Scalr.Mode.FIT_TO_WIDTH, dimension.width, dimension.height)
+        val newImage = Scalr.resize(compressMe, Scalr.Method.ULTRA_QUALITY, Scalr.Mode.FIT_EXACT, dimension.width, dimension.height)
         val compressFile = Path.of(photosPath + File.separator + "compressed" + File.separator + fileName).toFile()
         ImageIO.write(newImage, "jpg", compressFile)
     }
 
-    private fun createDownScaled(fileName: String, imageFile: Path) {
-        val compressed = Path.of(photosPath + File.separator + "downScaled" + File.separator + fileName + ".jpg")
-        if (compressed.toFile().exists())
-            Files.delete(compressed)
-        val compressMe = ImageIO.read(imageFile.toFile())
-        val dimension = Dimension(100, 45)
-        val newImage = Scalr.resize(compressMe, Scalr.Method.SPEED, Scalr.Mode.AUTOMATIC, dimension.width, dimension.height)
-        val compressFile = Path.of(photosPath + File.separator + "downScaled" + File.separator + fileName).toFile()
-        ImageIO.write(newImage, "jpg", compressFile)
-    }
-
     private fun createThumbnail(fileName: String, imageFile: Path) {
-        val thumbNailName = "${fileName.substring(0, fileName.indexOf("."))}_small.jpg"
+        val thumbNailName = fileName.getThumbnailName()
         val thumbnailPath = Path.of(photosPath + File.separator + "thumbnails" + File.separator + thumbNailName)
-        if (!thumbnailPath.toFile().exists()) {
-            val resizeMe = ImageIO.read(imageFile.toFile())
-            val dimension = Dimension(450, 300)
-            val newImage = Scalr.resize(resizeMe, Scalr.Method.QUALITY, Scalr.Mode.FIT_EXACT, dimension.width, dimension.height)
-            val thumbnailFile = Path.of(photosPath + File.separator + "thumbnails" + File.separator + thumbNailName).toFile()
-            ImageIO.write(newImage, "jpg", thumbnailFile)
-        }
+        if (thumbnailPath.toFile().exists())
+            Files.delete(thumbnailPath)
+        val resizeMe = ImageIO.read(imageFile.toFile())
+        val dimension = Dimension(450, 300)
+        val newImage = Scalr.resize(resizeMe, Scalr.Method.QUALITY, Scalr.Mode.FIT_EXACT, dimension.width, dimension.height)
+        val thumbnailFile = Path.of(photosPath + File.separator + "thumbnails" + File.separator + thumbNailName).toFile()
+        ImageIO.write(newImage, "jpg", thumbnailFile)
     }
 
     fun getTags(recordMap: Map<String, String>): List<Tag> {
