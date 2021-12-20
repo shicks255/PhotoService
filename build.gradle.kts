@@ -48,5 +48,5 @@ tasks.register("copy") {
 
 tasks.register<Copy>("copyJar") {
 	from("$buildDir/libs/PhotoService-0.0.1-SNAPSHOT.jar")
-	into("Z:\\photoService")
+	into("\\\\thinkcentre\\caddy\\photoService")
 }
