@@ -1,6 +1,7 @@
-package com.steven.hicks.PhotoService.repositories
+package com.steven.hicks.photoService.service
 
-import com.steven.hicks.PhotoService.models.Tag
+import com.steven.hicks.photoService.models.Tag
+import com.steven.hicks.photoService.repositories.TagRepository
 import org.springframework.stereotype.Service
 
 @Service

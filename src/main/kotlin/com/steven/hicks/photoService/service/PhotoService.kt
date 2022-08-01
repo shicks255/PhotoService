@@ -1,6 +1,7 @@
-package com.steven.hicks.PhotoService.repositories
+package com.steven.hicks.photoService.service
 
-import com.steven.hicks.PhotoService.models.Photo
+import com.steven.hicks.photoService.models.Photo
+import com.steven.hicks.photoService.repositories.PhotoRepository
 import org.springframework.stereotype.Service
 
 @Service
@@ -9,7 +10,6 @@ class PhotoService(val photoRepository: PhotoRepository) {
     fun deleteAll() = photoRepository.deleteAll()
 
     fun getPhotoByFilename(fileName: String): Photo {
-        requireNotNull(fileName)
         check(photoRepository.existsById(fileName))
 
         return photoRepository.findById(fileName).get()
