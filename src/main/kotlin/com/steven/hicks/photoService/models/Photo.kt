@@ -16,19 +16,19 @@ data class Photo(
     val fileName: String,
     val title: String,
     val description: String,
-    val lat: String?,
-    val long: String?,
-    val altitude: String?,
-    val exposureTime: String?,
-    val fNumber: String?,
-    val iso: String?,
-    val focalLength: String?,
-    val lensModel: String?,
+    val lat: String? = null,
+    val long: String? = null,
+    val altitude: String? = null,
+    val exposureTime: String? = null,
+    val fNumber: String? = null,
+    val iso: String? = null,
+    val focalLength: String? = null,
+    val lensModel: String? = null,
 
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
     val addedOn: LocalDateTime,
     @Column(columnDefinition = "TIMESTAMP WITH TIME ZONE")
-    val taken: LocalDateTime?,
+    val taken: LocalDateTime? = null,
     @Cascade(org.hibernate.annotations.CascadeType.MERGE)
     @ManyToMany(fetch = FetchType.EAGER, cascade = [CascadeType.ALL])
     @JoinTable(

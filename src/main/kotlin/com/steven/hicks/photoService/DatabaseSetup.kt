@@ -1,12 +1,9 @@
 package com.steven.hicks.photoService
 
-import com.drew.imaging.ImageMetadataReader
-import com.drew.metadata.Directory
-import com.drew.metadata.exif.ExifSubIFDDirectory
-import com.drew.metadata.exif.GpsDirectory
 import com.steven.hicks.photoService.models.Photo
 import com.steven.hicks.photoService.models.Tag
 import com.steven.hicks.photoService.service.PhotoService
+import com.steven.hicks.photoService.service.PhotoUtilsService
 import com.steven.hicks.photoService.service.TagService
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.GlobalScope
@@ -16,242 +13,102 @@ import kotlinx.coroutines.runBlocking
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.apache.commons.csv.CSVRecord
-import org.imgscalr.Scalr
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.boot.CommandLineRunner
 import org.springframework.context.annotation.Bean
 import org.springframework.core.io.ClassPathResource
 import org.springframework.stereotype.Service
-import java.awt.Dimension
 import java.io.BufferedReader
-import java.io.File
 import java.io.InputStreamReader
-import java.math.BigDecimal
-import java.math.MathContext
-import java.math.RoundingMode
 import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
-import java.time.LocalDateTime
-import java.time.LocalTime
 import java.time.ZoneId
-import java.util.regex.Pattern
-import javax.imageio.ImageIO
+import java.time.ZonedDateTime
 
 @Service
 class DatabaseSetup(
     val tagService: TagService,
-    val photoService: PhotoService
+    val photoService: PhotoService,
+    val photoUtilsService: PhotoUtilsService
 ) {
-
-    companion object {
-        val wideDimension: Pair<Int, Int> = Pair(1920, 1080)
-        val thumbDimension: Pair<Int, Int> = Pair(450, 300)
-        const val three = 3
-        const val six = 6
-    }
 
     @Value("\${photos.folder}")
     private lateinit var photosPath: String
+
+    val logger: Logger = LoggerFactory.getLogger(DatabaseSetup::class.java)
 
     @Bean
     fun setupDatabase(): CommandLineRunner {
         return CommandLineRunner { _ ->
 
-            photoService.deleteAll()
-            tagService.deleteAll()
+            logger.info("Beginning database seeding and setup")
+            val startTime = System.currentTimeMillis()
 
-            val job = GlobalScope.async {
-                createTags()
+            val tagJob = GlobalScope.async {
+                createTagsFromFile()
             }
 
-            val photosFolder = Path.of(photosPath)
-            if (!photosFolder.toFile().exists())
-                Files.createDirectory(photosFolder)
-
-            val resources = ClassPathResource("photoManifest.csv")
-            val t = BufferedReader(InputStreamReader(resources.inputStream))
-            val parser = CSVParser(t, CSVFormat.DEFAULT.withFirstRecordAsHeader())
-            val records = parser.records
-            val completedPhotos: List<Deferred<Any>> = records.map {
+            val records = getPhotoRecordsFromCsv()
+            val photoJob: List<Deferred<Any>> = records.map {
                 GlobalScope.async { createPhoto(it) }
             }
 
             runBlocking {
-                job.await()
-                completedPhotos.awaitAll()
+                tagJob.await()
+                photoJob.awaitAll()
             }
-            println("Database and Photo setup is complete")
+
+            val timeElapsed = System.currentTimeMillis() - startTime
+            logger.info("Database and Photo setup completed in {} ms", timeElapsed)
         }
     }
 
-    fun createTags() {
+    fun createTagsFromFile() {
         val tagList = ClassPathResource("tagList.txt")
         val lines = BufferedReader(InputStreamReader(tagList.inputStream)).readLines()
         lines.forEach { line -> tagService.createIfNotExists(line) }
 
-        println("finished at " + LocalTime.now())
+        logger.info("finished creating tags")
+    }
+
+    fun getPhotoRecordsFromCsv(): List<CSVRecord> {
+        val photosFolder = Path.of(photosPath)
+        if (!photosFolder.toFile().exists())
+            Files.createDirectory(photosFolder)
+
+        val resources = ClassPathResource("photoManifest.csv")
+        val t = BufferedReader(InputStreamReader(resources.inputStream))
+        val parser = CSVParser(t, CSVFormat.DEFAULT.withFirstRecordAsHeader())
+        return parser.records
     }
 
     fun createPhoto(csv: CSVRecord) {
-        println(csv)
         val csvMap = csv.toMap()
-        println(csvMap.toString())
 
-        val fileName = requireNotNull(csvMap.get("filename"))
-        val description = requireNotNull(csvMap.get("description"))
-        val title = requireNotNull(csvMap.get("title"))
+        val fileName = requireNotNull(csvMap["filename"])
+        val description = requireNotNull(csvMap["description"])
+        val title = requireNotNull(csvMap["title"])
 
-        val tags = getTags(csvMap)
-
-        val imageFile = Paths.get(photosPath + File.separator + fileName)
-        val imageMetaData = ImageMetadataReader.readMetadata(imageFile.toFile())
-
-        val exifSubIFDDirectory = imageMetaData.getFirstDirectoryOfType(ExifSubIFDDirectory::class.java)
-        val dateTaken = exifSubIFDDirectory.getDate(ExifSubIFDDirectory.TAG_DATETIME_ORIGINAL)
-        val dateTakenLocalDateTime = dateTaken.toInstant().atZone(ZoneId.of("UTC")).toLocalDateTime()
-
-        val exposureTime = if (exifSubIFDDirectory.containsTag(ExifSubIFDDirectory.TAG_EXPOSURE_TIME))
-            exifSubIFDDirectory.getString(ExifSubIFDDirectory.TAG_EXPOSURE_TIME) else ""
-        val fStop = if (exifSubIFDDirectory.containsTag(ExifSubIFDDirectory.TAG_FNUMBER))
-            exifSubIFDDirectory.getString(ExifSubIFDDirectory.TAG_FNUMBER) else ""
-        val iso = if (exifSubIFDDirectory.containsTag(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT))
-            exifSubIFDDirectory.getString(ExifSubIFDDirectory.TAG_ISO_EQUIVALENT) else ""
-        val focalLength = if (exifSubIFDDirectory.containsTag(ExifSubIFDDirectory.TAG_FOCAL_LENGTH))
-            exifSubIFDDirectory.getString(ExifSubIFDDirectory.TAG_FOCAL_LENGTH) else ""
-        val lensModel = if (exifSubIFDDirectory.containsTag(ExifSubIFDDirectory.TAG_LENS_MODEL))
-            exifSubIFDDirectory.getString(ExifSubIFDDirectory.TAG_LENS_MODEL) else ""
-
-        var longetude = ""
-        var latitude = ""
-        var altitude = ""
-
-        val context = MathContext(six, RoundingMode.HALF_EVEN)
-
-        if (imageMetaData.getFirstDirectoryOfType(GpsDirectory::class.java) != null) {
-            val gpsDirectory = imageMetaData.getFirstDirectoryOfType(GpsDirectory::class.java)
-
-            longetude = getLongitude(gpsDirectory, context)
-            latitude = getLatitude(gpsDirectory, context)
-            altitude = gpsDirectory.getString(GpsDirectory.TAG_ALTITUDE)
-        }
-
-        createThumbnail(fileName, imageFile)
-        createCompressed(fileName, imageFile)
-
-        if (photoService.photoExists(fileName)) {
-            val oldPhoto = photoService.getPhotoByFilename(fileName)
-            // doing this in case anything changed
-            val newOldPhoto = oldPhoto.copy(
-                description = description,
-                tags = tags,
-                taken = dateTakenLocalDateTime,
-                title = title
-            )
-            photoService.savePhoto(newOldPhoto)
-        } else {
-            val newPhoto = Photo(
-                fileName, title,
-                description, latitude, longetude, altitude, exposureTime, fStop, iso, focalLength, lensModel,
-                LocalDateTime.now(), dateTakenLocalDateTime, tags
-            )
-            photoService.savePhoto(newPhoto)
-        }
-    }
-
-    private fun createCompressed(fileName: String, imageFile: Path) {
-        val compressed = Path.of(photosPath + File.separator + "compressed" + File.separator + fileName)
-        if (compressed.toFile().exists())
-            Files.delete(compressed)
-        val compressMe = ImageIO.read(imageFile.toFile())
-        val dimension = Dimension(wideDimension.first, wideDimension.second)
-        val newImage = Scalr.resize(
-            compressMe,
-            Scalr.Method.ULTRA_QUALITY,
-            Scalr.Mode.FIT_EXACT,
-            dimension.width,
-            dimension.height
-        )
-        val compressFile = Path.of(photosPath + File.separator + "compressed" + File.separator + fileName).toFile()
-        ImageIO.write(newImage, "jpg", compressFile)
-    }
-
-    private fun createThumbnail(fileName: String, imageFile: Path) {
-        val thumbNailName = fileName.getThumbnailName()
-        val thumbnailPath = Path.of(photosPath + File.separator + "thumbnails" + File.separator + thumbNailName)
-        if (thumbnailPath.toFile().exists())
-            Files.delete(thumbnailPath)
-        val resizeMe = ImageIO.read(imageFile.toFile())
-        val dimension = Dimension(thumbDimension.first, thumbDimension.second)
-        val newImage = Scalr.resize(
-            resizeMe,
-            Scalr.Method.QUALITY,
-            Scalr.Mode.FIT_EXACT,
-            dimension.width,
-            dimension.height
-        )
-        val thumbnailFile = Path.of(
-            photosPath + File.separator + "thumbnails" + File.separator + thumbNailName
-        ).toFile()
-        ImageIO.write(newImage, "jpg", thumbnailFile)
-    }
-
-    fun getTags(recordMap: Map<String, String>): List<Tag> {
         val tags = mutableListOf<Tag>()
 
-        for (i in 1 until recordMap.size) {
-            val tag = recordMap["tag$i"]
+        for (i in 1 until csv.size()) {
+            val tag = csvMap["tag$i"]
             if (!tag.isNullOrBlank()) {
                 val tagRecord = tagService.createIfNotExists(tag)
                 tags.add(tagRecord)
             }
         }
 
-        return tags
-    }
+        val photo = Photo(
+            fileName = fileName,
+            title = title,
+            description = description,
+            addedOn = ZonedDateTime.now(ZoneId.of("UTC")).toLocalDateTime(),
+            tags = tags
+        )
 
-    fun getLongitude(gpsDirectory: Directory, context: MathContext): String {
-        val dmsLongetude =
-            gpsDirectory.getString(GpsDirectory.TAG_LONGITUDE) + " " +
-                gpsDirectory.getString(GpsDirectory.TAG_LONGITUDE_REF)
-        val longTokens = dmsLongetude.split(Pattern.compile("/\\d+\\s"))
-
-        val longStuff = dmsLongetude.split(" ")
-        var longDegrees = BigDecimal(longStuff[0].split("/")[0])
-        longDegrees = longDegrees.divide(BigDecimal(longStuff[0].split("/")[1]), context)
-
-        var longMinutes = BigDecimal(longStuff[1].split("/")[0])
-        longMinutes = longMinutes.divide(BigDecimal(longStuff[1].split("/")[1]), context)
-
-        var longSeconds = BigDecimal(longStuff[2].split("/")[0])
-        longSeconds = longSeconds.divide(BigDecimal(longStuff[2].split("/")[1]), context)
-
-        val longetude = longDegrees
-            .plus(longMinutes.divide(BigDecimal("60"), context))
-            .plus(longSeconds.divide(BigDecimal("3600"), context)).toString() + longTokens[three]
-
-        return longetude
-    }
-
-    fun getLatitude(gpsDirectory: Directory, context: MathContext): String {
-        val dmsLatitude = gpsDirectory.getString(GpsDirectory.TAG_LATITUDE) + " " +
-            gpsDirectory.getString(GpsDirectory.TAG_LATITUDE_REF)
-        val latTokens = dmsLatitude.split(Pattern.compile("/\\d+\\s"))
-
-        val latStuff = dmsLatitude.split(" ")
-        var latDegrees = BigDecimal(latStuff[0].split("/")[0])
-        latDegrees = latDegrees.divide(BigDecimal(latStuff[0].split("/")[1]), context)
-
-        var latMinutes = BigDecimal(latStuff[1].split("/")[0])
-        latMinutes = latMinutes.divide(BigDecimal(latStuff[1].split("/")[1]), context)
-
-        var latSeconds = BigDecimal(latStuff[2].split("/")[0])
-        latSeconds = latSeconds.divide(BigDecimal(latStuff[2].split("/")[1]), context)
-
-        val latitude = latDegrees
-            .plus(latMinutes.divide(BigDecimal("60"), context))
-            .plus(latSeconds.divide(BigDecimal("3600"), context)).toString() + latTokens[three]
-
-        return latitude
+        photoUtilsService.createAndResizePhoto(photo)
     }
 }

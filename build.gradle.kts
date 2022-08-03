@@ -61,7 +61,9 @@ tasks.jacocoTestCoverageVerification {
         files(
             classDirectories.files.map {
                 fileTree(it) {
-                    exclude("")
+                    exclude("com/steven/hicks/photoService/models/**")
+                    exclude("com/steven/hicks/photoService/config/**")
+                    exclude("com/steven/hicks/photoService/repositories/**")
                 }
             }
         )
@@ -69,7 +71,7 @@ tasks.jacocoTestCoverageVerification {
     violationRules {
         rule {
             limit {
-                minimum = BigDecimal("0.75")
+                minimum = BigDecimal("0.50")
             }
         }
     }
