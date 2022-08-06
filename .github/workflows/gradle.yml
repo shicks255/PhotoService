@@ -28,5 +28,7 @@ jobs:
       with:
         java-version: '11'
         distribution: 'temurin'
+    - name: dir
+      run: ls
     - name: Build with Gradle
       run: ./gradlew clean
