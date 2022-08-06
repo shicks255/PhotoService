@@ -31,4 +31,4 @@ jobs:
     - name: dir
       run: ls
     - name: Build with Gradle
-      run: gradle clean
+      run: gradle check
