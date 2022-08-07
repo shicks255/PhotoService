@@ -8,7 +8,6 @@ import com.steven.hicks.photoService.models.Photo
 import org.imgscalr.Scalr
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.awt.Dimension
 import java.awt.image.BufferedImage
@@ -23,10 +22,15 @@ import javax.imageio.ImageIO
 
 @Service
 class PhotoUtilsService(
-    val photoService: PhotoService,
-    @Value("\${photos.folder}")
-    val photosPath: String
+    val photoService: PhotoService
+//    @Value("\${photos.folder}")
+//    val photosPath: String = ""
 ) {
+
+//    init {
+//        photosPath =
+//            Path.of(System.getProperty("user.dir") + "/photos")
+//    }
 
     val logger: Logger = LoggerFactory.getLogger(PhotoUtilsService::class.java)
 
@@ -39,10 +43,17 @@ class PhotoUtilsService(
 
     fun getPhotoPath(fileName: String, subFolder: String? = null): Path {
         if (subFolder != null) {
-            return Path.of(photosPath + File.separator + subFolder + File.separator + fileName)
+            return Path.of(
+                System.getProperty("user.dir") + "/photos" + File.separator +
+                    subFolder + File.separator + fileName
+            )
         }
 
-        return Path.of(photosPath + File.separator + fileName)
+//        return Path.of(photosPath + File.separator + fileName)
+        return Path.of(
+            System.getProperty("user.dir") + "/photos" +
+                File.separator + fileName
+        )
     }
 
     fun createAndResizePhoto(photo: Photo) {
