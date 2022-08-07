@@ -4,7 +4,7 @@ ARG JAR_FILE=build/*.jar
 
 COPY /build/libs/photoService-0.0.1-SNAPSHOT.jar app.jar
 
-ADD "/photos" /photos
+ADD "./photos" /photos
 
 CMD "ls"
 
