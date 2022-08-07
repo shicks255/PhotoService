@@ -42,6 +42,7 @@ class PhotoUtilsService(
     }
 
     fun getPhotoPath(fileName: String, subFolder: String? = null): Path {
+        println(System.getProperty("user.dir"))
         if (subFolder != null) {
             return Path.of(
                 System.getProperty("user.dir") + "/photos" + File.separator +
