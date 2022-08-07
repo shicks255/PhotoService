@@ -93,3 +93,9 @@ tasks.register<Copy>("copyJar") {
     from("$buildDir/libs/photoService-0.0.1-SNAPSHOT.jar")
     into("\\\\thinkcentre\\caddy\\photoService")
 }
+
+tasks.register<Copy>("copyProdProperties") {
+    println(projectDir)
+    from("$projectDir/src/main/resources/application-prod.yml")
+    into("\\\\thinkcentre\\caddy\\photoService")
+}
