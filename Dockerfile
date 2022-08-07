@@ -2,7 +2,7 @@ FROM adoptopenjdk:openj9
 
 ARG JAR_FILE=build/*.jar
 
-COPY "./build/libs/photoService-0.0.1-SNAPSHOT.jar" app.jar
+ADD "./build/libs/photoService-0.0.1-SNAPSHOT.jar" app.jar
 
 ADD "./photos" /photos
 
