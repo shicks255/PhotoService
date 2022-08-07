@@ -44,7 +44,7 @@ class DatabaseSetup(
         return CommandLineRunner { _ ->
 
             logger.info("Beginning database seeding and setup")
-            logger.info("Folder path={}", photosPath)
+            logger.info("Folder ------ path={}", photosPath)
             logger.info("Folder abs path={}", Path.of(photosPath).toFile().absoluteFile)
             val startTime = System.currentTimeMillis()
 
