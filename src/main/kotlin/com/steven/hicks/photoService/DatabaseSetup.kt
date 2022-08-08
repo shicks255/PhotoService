@@ -5,11 +5,6 @@ import com.steven.hicks.photoService.models.Tag
 import com.steven.hicks.photoService.service.PhotoService
 import com.steven.hicks.photoService.service.PhotoUtilsService
 import com.steven.hicks.photoService.service.TagService
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.runBlocking
 import org.apache.commons.csv.CSVFormat
 import org.apache.commons.csv.CSVParser
 import org.apache.commons.csv.CSVRecord
@@ -49,7 +44,7 @@ class DatabaseSetup(
             val startTime = System.currentTimeMillis()
 
 //            val tagJob = GlobalScope.async {
-                createTagsFromFile()
+            createTagsFromFile()
 //            }
 
             val records = getPhotoRecordsFromCsv()
