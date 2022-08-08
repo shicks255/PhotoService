@@ -6,7 +6,7 @@ ADD "./build/libs/PhotoServicePipeline-0.0.1-SNAPSHOT.jar" app.jar
 
 ADD "./photos" /photos
 
-ADD "C:\caddy\photoService\application-prod.yml" application-prod.yml
+#ADD "C:\caddy\photoService\application-prod.yml" application-prod.yml
 
 CMD "ls"
 
