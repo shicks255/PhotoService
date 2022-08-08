@@ -12,6 +12,6 @@ CMD "ls"
 
 EXPOSE 7474
 
-ENTRYPOINT ["java", "-XX:+UseSerialGC", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xmx512m", "-XX:+UseSerialGC", "-jar", "app.jar"]
 
 #"-Dspring.config.location = application-prod.yml",
