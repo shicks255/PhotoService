@@ -84,7 +84,7 @@ class PhotoUtilsService(
                     thumbDimension.width,
                     thumbDimension.height
                 ),
-                getPhotoPath(photo.fileName + "_small", "thumbnails")
+                getPhotoPath(photo.fileName.split(".")[0] + "_small" + ".jpg", "thumbnails")
             )
         }
 
