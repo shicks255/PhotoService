@@ -1,0 +1,30 @@
+server:
+  port: 7474
+
+spring:
+  datasource:
+    url: jdbc:postgresql://shicks255.com:5432/Photos
+    username: shicks
+    platform: postgres
+    hikari:
+      max-lifetime: 500
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        jdbc:
+          lob:
+            non_contextual_creation: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+photos:
+#  folder: 'C:\Users\shick\Desktop\photos'
+  folder: '/photos'
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
