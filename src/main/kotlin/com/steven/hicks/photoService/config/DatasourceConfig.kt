@@ -5,14 +5,13 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import javax.sql.DataSource
 
-
 @Configuration
 class DatasourceConfig {
 
     @Bean
     fun thing(): DataSource {
 
-        val dbUser= System.getenv("dbuser")
+        val dbUser = System.getenv("dbuser")
         val dbPassword = System.getenv("dbpassword")
 
         val dataSourceBuilder = DataSourceBuilder.create()
