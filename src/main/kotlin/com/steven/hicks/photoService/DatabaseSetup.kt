@@ -48,19 +48,21 @@ class DatabaseSetup(
             logger.info("Folder abs path={}", Path.of(photosPath).toFile().absoluteFile)
             val startTime = System.currentTimeMillis()
 
-            val tagJob = GlobalScope.async {
+//            val tagJob = GlobalScope.async {
                 createTagsFromFile()
-            }
+//            }
 
             val records = getPhotoRecordsFromCsv()
-            val photoJob: List<Deferred<Any>> = records.map {
-                GlobalScope.async { createPhoto(it) }
-            }
+//            val photoJob: List<Deferred<Any>> = records.map {
+//                GlobalScope.async { createPhoto(it) }
+//            }
 
-            runBlocking {
-                tagJob.await()
-                photoJob.awaitAll()
-            }
+            records.forEach { createPhoto(it) }
+
+//            runBlocking {
+//                tagJob.await()
+//                photoJob.awaitAll()
+//            }
 
             val timeElapsed = System.currentTimeMillis() - startTime
             logger.info("Database and Photo setup completed in {} ms", timeElapsed)
