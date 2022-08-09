@@ -10,7 +10,7 @@ class WebConfig : WebMvcConfigurer {
 
     override fun addCorsMappings(registry: CorsRegistry) {
         registry.addMapping("/**")
-            .allowedOrigins("http:localhost:3000", "https://photos.shicks255.com")
+            .allowedOrigins("http://localhost:3000", "https://photos.shicks255.com")
     }
 
     override fun addViewControllers(registry: ViewControllerRegistry) {
