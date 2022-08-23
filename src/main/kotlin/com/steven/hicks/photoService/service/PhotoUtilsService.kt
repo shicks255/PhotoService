@@ -23,14 +23,7 @@ import javax.imageio.ImageIO
 @Service
 class PhotoUtilsService(
     val photoService: PhotoService
-//    @Value("\${photos.folder}")
-//    val photosPath: String = ""
 ) {
-
-//    init {
-//        photosPath =
-//            Path.of(System.getProperty("user.dir") + "/photos")
-//    }
 
     val logger: Logger = LoggerFactory.getLogger(PhotoUtilsService::class.java)
 
@@ -42,7 +35,6 @@ class PhotoUtilsService(
     }
 
     fun getPhotoPath(fileName: String, subFolder: String? = null): Path {
-        logger.info("Path is ${System.getProperty("user.dir")}")
         if (subFolder != null) {
             return Path.of(
                 System.getProperty("user.dir") + "/photos" + File.separator +
@@ -50,7 +42,6 @@ class PhotoUtilsService(
             )
         }
 
-//        return Path.of(photosPath + File.separator + fileName)
         return Path.of(
             System.getProperty("user.dir") + "/photos" +
                 File.separator + fileName
@@ -144,14 +135,25 @@ class PhotoUtilsService(
 
     fun hasPhotoChanged(oldPhoto: Photo, newPhoto: Photo): Boolean {
 
-        var photoChanged = true
-
-        if (oldPhoto == newPhoto) {
-            photoChanged = false
+        var photoChanged = false
+        if (
+            oldPhoto.fileName != newPhoto.fileName ||
+            oldPhoto.lat != newPhoto.lat ||
+            oldPhoto.long != newPhoto.long ||
+            oldPhoto.fNumber != newPhoto.fNumber ||
+            oldPhoto.exposureTime != newPhoto.exposureTime ||
+            oldPhoto.altitude != newPhoto.altitude ||
+            oldPhoto.description != newPhoto.description ||
+            oldPhoto.title != newPhoto.title ||
+            oldPhoto.focalLength != newPhoto.focalLength ||
+            oldPhoto.lensModel != newPhoto.lensModel ||
+            oldPhoto.taken != newPhoto.taken
+        ) {
+            photoChanged = true
         }
 
-        if (oldPhoto.hashCode() == newPhoto.copy(addedOn = oldPhoto.addedOn).hashCode()) {
-            photoChanged = false
+        if (oldPhoto.tags.size != newPhoto.tags.size) {
+            photoChanged = true
         }
 
         return photoChanged

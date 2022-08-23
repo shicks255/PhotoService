@@ -17,6 +17,9 @@ Martinsville
 Niagara Falls
 Washington DC
 Pittsburgh
+San Francisco
+New York
+Cleveland
 Albany
 Travel
 Cars
@@ -31,6 +34,8 @@ Nighttime
 Drone
 Aerial
 People
+Park
+Beach
 Animals
 Brandy
 Cruiser

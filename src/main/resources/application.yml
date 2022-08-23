@@ -20,7 +20,7 @@ spring:
 
 photos:
 #  folder: 'C:\Users\shick\Desktop\photos'
-  folder: '/photos'
+  folder: 'C:\projects\IdeaProjects\photoService\photos'
 
 
 management:
