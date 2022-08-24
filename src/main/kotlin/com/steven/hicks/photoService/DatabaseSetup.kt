@@ -95,7 +95,7 @@ class DatabaseSetup(
         for (i in 1 until csv.size()) {
             val tag = csvMap["tag$i"]
             if (!tag.isNullOrBlank()) {
-                val trimmedTag = tag.trim();
+                val trimmedTag = tag.trim()
                 val tagRecord = tagService.createIfNotExists(trimmedTag)
                 tags.add(tagRecord)
             }
